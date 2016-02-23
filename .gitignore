@@ -1,0 +1,14 @@
+php.ini
+composer.lock
+composer.phar
+.idea
+.c9
+/var/log/*.log
+/target
+/reports
+/instance-src
+/vendor
+/.buildpath
+/.project
+/.settings
+/.build.properties

@@ -5,24 +5,13 @@
 	"license" : "OSL-3.0",
 	"keywords" : [
 		"php",
+		"dns",
 		"server",
-		"webserver",
-		"httpd",
-		"http-server"
+		"dns-server"
 	],
 	"authors" : [{
-			"name" : "Johann Zelger",
-			"email" : "jz@appserver.io",
-			"homepage" : "http://www.appserver.io",
-			"role" : "Developer"
-		}, {
 			"name" : "Tim Wagner",
 			"email" : "tw@appserver.io",
-			"homepage" : "http://www.appserver.io",
-			"role" : "Developer"
-		}, {
-			"name" : "Bernhard Wick",
-			"email" : "bw@appserver.io",
 			"homepage" : "http://www.appserver.io",
 			"role" : "Developer"
 		}
@@ -33,11 +22,8 @@
 		"rhumsaa/uuid" : "~2.8",
 		"psr/log" : "*",
 		"appserver-io/server" : "~5.0",
-		"appserver-io/http" : "~2.0",
-		"appserver-io/fastcgi" : "~1.0",
 		"appserver-io/logger" : "~1.0",
 		"appserver-io-psr/socket" : "~1.0",
-		"appserver-io-psr/http-message" : "~1.0",
 		"appserver-io/concurrency" : "~0.1"
 	},
 	"require-dev" : {
@@ -46,15 +32,15 @@
 	},
 	"autoload" : {
 		"psr-0" : {
-			"AppserverIo\\WebServer" : [
+			"AppserverIo\\DnsServer" : [
 				"src/",
 				"tests/"
 			]
 		}
 	},
 	"support" : {
-		"email" : "jz@appserver.io",
-		"issues" : "https://github.com/appserver-io/webserver/issues",
-		"source" : "https://github.com/appserver-io/webserver"
+		"email" : "tw@appserver.io",
+		"issues" : "https://github.com/appserver-io/dnsserver/issues",
+		"source" : "https://github.com/appserver-io/dnsserver"
 	}
 }

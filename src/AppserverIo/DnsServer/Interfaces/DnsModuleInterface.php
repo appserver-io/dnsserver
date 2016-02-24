@@ -1,7 +1,7 @@
 <?php
 
 /**
- * \AppserverIo\WebServer\Interfaces\DnsModuleInterface
+ * \AppserverIo\DnsServer\Interfaces\DnsModuleInterface
  *
  * NOTICE OF LICENSE
  *
@@ -11,14 +11,14 @@
  *
  * PHP version 5
  *
- * @author    Johann Zelger <jz@appserver.io>
- * @copyright 2015 TechDivision GmbH <info@appserver.io>
+ * @author    Tim Wagner <tw@appserver.io>
+ * @copyright 2016 TechDivision GmbH <info@appserver.io>
  * @license   http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
- * @link      https://github.com/appserver-io/webserver
+ * @link      https://github.com/appserver-io/dnsserver
  * @link      http://www.appserver.io
  */
 
-namespace AppserverIo\WebServer\Interfaces;
+namespace AppserverIo\DnsServer\Interfaces;
 
 use AppserverIo\Server\Exceptions\ModuleException;
 use AppserverIo\Server\Interfaces\ModuleInterface;
@@ -27,24 +27,24 @@ use AppserverIo\Server\Interfaces\RequestContextInterface;
 /**
  * Interface HttpModuleInterface
  *
- * @author Johann Zelger <jz@appserver.io>
- * @copyright 2015 TechDivision GmbH <info@appserver.io>
- * @license http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
- * @link https://github.com/appserver-io/webserver
- * @link http://www.appserver.io
+ * @author    Tim Wagner <tw@appserver.io>
+ * @copyright 2016 TechDivision GmbH <info@appserver.io>
+ * @license   http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
+ * @link      https://github.com/appserver-io/dnsserver
+ * @link      http://www.appserver.io
  */
 interface DnsModuleInterface extends ModuleInterface
 {
 
     /**
-     * Implements module logic for given hook
+     * Implements module logic for given hook.
      *
-     * @param \AppserverIo\Psr\HttpMessage\RequestInterface          $request        A request object
-     * @param \AppserverIo\Psr\HttpMessage\ResponseInterface         $response       A response object
+     * @param \AppserverIo\DnsServer\Interfaces\DnsRequestInterface  $request        A request object
+     * @param \AppserverIo\DnsServer\Interfaces\DnsResponseInterface $response       A response object
      * @param \AppserverIo\Server\Interfaces\RequestContextInterface $requestContext A requests context instance
      *
      * @return bool
      * @throws \AppserverIo\Server\Exceptions\ModuleException
      */
-    public function process(RequestInterface $request, ResponseInterface $response, RequestContextInterface $requestContext);
+    public function process(DnsRequestInterface $request, DnsResponseInterface $response, RequestContextInterface $requestContext);
 }

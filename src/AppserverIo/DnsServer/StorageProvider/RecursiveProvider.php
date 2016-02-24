@@ -1,11 +1,39 @@
 <?php
 
-namespace yswery\DNS;
+/**
+ * AppserverIo\DnsServer\StorageProvider\AbstractStorageProvider
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/osl-3.0.php
+ *
+ * PHP version 5
+ *
+ * @author    Tim Wagner <tw@appserver.io>
+ * @copyright 2016 TechDivision GmbH <info@appserver.io>
+ * @license   http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
+ * @link      https://github.com/appserver-io/dnsserver
+ * @link      http://www.appserver.io/
+ */
 
-use \Exception;
+namespace AppserverIo\DnsServer\StorageProvider;
 
-class RecursiveProvider extends AbstractStorageProvider {
-    
+use AppserverIo\DnsServer\Utils\RecordTypeEnum;
+
+/**
+ * Class CoreModule
+ *
+ * @author    Tim Wagner <tw@appserver.io>
+ * @copyright 2016 TechDivision GmbH <info@appserver.io>
+ * @license   http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
+ * @link      https://github.com/appserver-io/dnsserver
+ * @link      http://www.appserver.io/
+ */
+class RecursiveProvider extends AbstractStorageProvider
+{
+
     private $dns_answer_names = array(
         'DNS_A' => 'ip',
         'DNS_AAAA' => 'ipv6',
@@ -16,30 +44,30 @@ class RecursiveProvider extends AbstractStorageProvider {
         'DNS_SOA' => array('mname', 'rname', 'serial', 'retry', 'refresh', 'expire', 'minimum-ttl'),
         'DNS_PTR' => 'target',
     );
-    
+
     public function get_answer($question)
     {
         $answer = array();
         $domain = trim($question[0]['qname'], '.');
         $type = RecordTypeEnum::get_name($question[0]['qtype']);
-        
+
         $records = $this->get_records_recursivly($domain, $type);
         foreach($records as $record) {
             $answer[] = array('name' => $question[0]['qname'], 'class' => $question[0]['qclass'], 'ttl' => $record['ttl'], 'data' => array('type' => $question[0]['qtype'], 'value' => $record['answer']));
         }
-     
+
         return $answer;
     }
-    
+
     private function get_records_recursivly($domain, $type)
     {
         $result = array();
         $dns_const_name =  $this->get_dns_cost_name($type);
-        
+
         if (!$dns_const_name) {
-           throw new Exception('Not supported dns type to query.'); 
+           throw new \Exception('Not supported dns type to query.');
         }
-        
+
         $dns_answer_name = $this->dns_answer_names[$dns_const_name];
         $records = dns_get_record($domain, constant($dns_const_name));
 
@@ -56,14 +84,14 @@ class RecursiveProvider extends AbstractStorageProvider {
 
         return $result;
     }
-    
+
     private function get_dns_cost_name($type)
     {
         $const_name = "DNS_".strtoupper($type);
         $name = defined($const_name) ? $const_name : false;
-        
+
         return $name;
     }
-    
+
 }
 

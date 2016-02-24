@@ -21,7 +21,7 @@
 namespace AppserverIo\DnsServer\Interfaces;
 
 /**
- * Interface HttpRequestParserInterface
+ * DNS request parser interface.
  *
  * @author    Tim Wagner <tw@appserver.io>
  * @copyright 2016 TechDivision GmbH <info@appserver.io>
@@ -29,40 +29,17 @@ namespace AppserverIo\DnsServer\Interfaces;
  * @link      https://github.com/appserver-io/dnsserver
  * @link      https://www.appserver.io
  */
-interface DnsRequestDecoderInterface
+interface DnsRequestParserInterface
 {
-    /**
-     * Parses the start line
-     *
-     * @param string $line The start line
-     *
-     * @return void
-     * @throws \AppserverIo\Http\HttpException
-     *
-     * @link http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.1
-     */
-    public function parseStartLine($line);
 
     /**
-     * Parse's the header line to get method, uri and version
+     * Parses the request data from the passed buffer.
      *
-     * @param string $line The line defining a http request header
-     *
-     * @return mixed
-     */
-    public function parseHeaderLine($line);
-
-    /**
-     * Parse headers in a proper way
-     *
-     * @param string $messageHeaders The message headers
+     * @param string $buffer The buffer to decode the data from
      *
      * @return void
-     * @throws \AppserverIo\Http\HttpException
-     *
-     * @link http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2
      */
-    public function parseHeaders($messageHeaders);
+    public function parse($buffer);
 
     /**
      * Return's the request instance to pass parsed content to
@@ -70,6 +47,7 @@ interface DnsRequestDecoderInterface
      * @return \AppserverIo\Psr\HttpMessage\RequestInterface
      */
     public function getRequest();
+
     /**
      * Return's the response instance
      *

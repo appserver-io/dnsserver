@@ -1,7 +1,7 @@
 <?php
 
 /**
- * \AppserverIo\WebServer\ConnectionHandlers\DnsConnectionHandler
+ * \AppserverIo\DnsServer\ConnectionHandlers\DnsConnectionHandler
  *
  * NOTICE OF LICENSE
  *
@@ -11,28 +11,48 @@
  *
  * PHP version 5
  *
- * @author    Johann Zelger <jz@appserver.io>
- * @copyright 2015 TechDivision GmbH <info@appserver.io>
+ * @author    Tim Wagner <tw@appserver.io>
+ * @copyright 2016 TechDivision GmbH <info@appserver.io>
  * @license   http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
- * @link      https://github.com/appserver-io/webserver
- * @link      http://www.appserver.io
+ * @link      https://github.com/appserver-io/dnsserver
+ * @link      https://www.appserver.io
  */
 
-namespace AppserverIo\WebServer\ConnectionHandlers;
+namespace AppserverIo\DnsServer\ConnectionHandlers;
 
-use AppserverIo\Http\DnsRequest;
-use AppserverIo\Http\DnsResponse;
+use AppserverIo\Psr\Socket\SocketInterface;
+use AppserverIo\DnsServer\Connectors\DnsRequest;
+use AppserverIo\DnsServer\Connectors\DnsResponse;
+use AppserverIo\DnsServer\Connectors\DnsRequestParser;
+use AppserverIo\Server\Interfaces\WorkerInterface;
+use AppserverIo\Server\Interfaces\ServerContextInterface;
+use AppserverIo\Server\Interfaces\ConnectionHandlerInterface;
+
 /**
- * Class HttpConnectionHandler
+ * A handler implementation for DNS requests.
  *
- * @author Johann Zelger <jz@appserver.io>
- * @copyright 2015 TechDivision GmbH <info@appserver.io>
- * @license http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
- * @link https://github.com/appserver-io/webserver
- * @link http://www.appserver.io
+ * @author    Tim Wagner <tw@appserver.io>
+ * @copyright 2016 TechDivision GmbH <info@appserver.io>
+ * @license   http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
+ * @link      https://github.com/appserver-io/dnsserver
+ * @link      https://www.appserver.io
  */
 class DnsConnectionHandler implements ConnectionHandlerInterface
 {
+
+    /**
+     * Defines the read length for DNS connections.
+     *
+     * @var integer
+     */
+    const DNS_CONNECTION_READ_LENGTH = 512;
+
+    /**
+     * Holds parser instance
+     *
+     * @var \AppserverIo\DnsServer\Interfaces\DnsRequestParserInterface
+     */
+    protected $parser;
 
     /**
      * Holds the server context instance
@@ -40,6 +60,14 @@ class DnsConnectionHandler implements ConnectionHandlerInterface
      * @var \AppserverIo\Server\Interfaces\ServerContextInterface
      */
     protected $serverContext;
+
+    /**
+     * Holds the request's context instance
+     *
+     * @var \AppserverIo\Server\Interfaces\RequestContextInterface
+     */
+    protected $requestContext;
+
 
     /**
      * Holds the connection instance
@@ -88,9 +116,8 @@ class DnsConnectionHandler implements ConnectionHandlerInterface
         // init DNS response object
         $dnsResponse = new DnsResponse();
 
-        // setup http parser
-        $this->decoder = new DnsRequestEncoder($httpRequest, $httpResponse);
-        $this->encoder = new DnsResponseEncoder($httpRequest, $httpResponse);
+        // setup DNS parser
+        $this->parser = new DnsRequestParser($dnsRequest, $dnsResponse);
 
         // get request context type
         $requestContextType = $this->getServerConfig()->getRequestContextType();
@@ -101,7 +128,6 @@ class DnsConnectionHandler implements ConnectionHandlerInterface
         // instantiate and init request context
         $this->requestContext = new $requestContextType();
         $this->requestContext->init($this->getServerConfig());
-
     }
 
     /**
@@ -140,6 +166,25 @@ class DnsConnectionHandler implements ConnectionHandlerInterface
         }
     }
 
+    /**
+     * Returns the DNS parser instance.
+     *
+     * @return \AppserverIo\DnsServer\Interfaces\DnsRequestParserInterface
+     */
+    public function getParser()
+    {
+        return $this->parser;
+    }
+
+    /**
+     * Returns the request's context instance
+     *
+     * @return \AppserverIo\Server\Interfaces\RequestContextInterface
+     */
+    public function getRequestContext()
+    {
+        return $this->requestContext;
+    }
     /**
      * Returns the server context instance
      *
@@ -192,52 +237,33 @@ class DnsConnectionHandler implements ConnectionHandlerInterface
      */
     public function handle(SocketInterface $connection, WorkerInterface $worker)
     {
-
-        // register shutdown handler once to avoid strange memory consumption problems
-        $this->registerShutdown();
-
-        // add connection ref to self
-        $this->connection = $connection;
-        $this->worker = $worker;
-
-        // try to handle request if its a http request
         try {
 
-            $decoder = $this->getDecoder();
-            $encoder = $this->getEncoder();
+            // register shutdown handler once to avoid strange memory consumption problems
+            $this->registerShutdown();
+
+            // add connection ref to self
+            $this->connection = $connection;
+            $this->worker = $worker;
+
+            $parser = $this->getParser();
+
+            // init the request parser
+            $parser->init();
 
             // get local var refs
             $connection = $this->getConnection();
 
-            /**
-             * Parse headers in a proper way
-             *
-             * @link http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2
-             */
-            $buffer = '';
-            while (!in_array($line, array("\r\n", "\n"))) {
-                // read next line
-                $line = $connection->readLine();
-                // enhance headers
-                $buffer .= $line;
-            }
-
-            $decoder->decode($buffer);
+            $this->getParser()->parse($connection->receiveFrom());
 
             $this->processModules();
-
-            $encoder->encode();
 
             $this->sendResponse();
 
         } catch (\Exception $e) {
             $this->getServerContext()->getLogger()->error($e->__toString());
         }
-
-        // close connection if not closed yet
-        $connection->close();
     }
-
     /**
      * Sends response to connected client
      *
@@ -253,7 +279,7 @@ class DnsConnectionHandler implements ConnectionHandlerInterface
         @rewind($inputStream);
         // stream response to client connection
         while ($readContent = fread($inputStream, 4096)) {
-            $connection->write($readContent);
+            $connection->sendTo($readContent);
         }
     }
 
@@ -275,10 +301,6 @@ class DnsConnectionHandler implements ConnectionHandlerInterface
             // process modules logic by hook
             /** @var $module \AppserverIo\DnsServer\Interfaces\DnsModuleInterface */
             $module->process($request, $response, $requestContext);
-            // break chain if response state is DISPATCH
-            if ($response->hasState(HttpResponseStates::DISPATCH)) {
-                break;
-            }
         }
     }
 
@@ -311,7 +333,7 @@ class DnsConnectionHandler implements ConnectionHandlerInterface
 
         // check if worker is given
         if ($worker = $this->getWorker()) {
-            $this->getWorker()->shutdown();
+            $worker->shutdown();
         }
     }
 }

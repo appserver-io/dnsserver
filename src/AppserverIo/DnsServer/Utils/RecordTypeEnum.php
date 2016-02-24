@@ -1,9 +1,37 @@
 <?php
 
-namespace yswery\DNS;
+/**
+ * AppserverIo\DnsServer\Utils\RecordTypeEnum
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/osl-3.0.php
+ *
+ * PHP version 5
+ *
+ * @author    Tim Wagner <tw@appserver.io>
+ * @copyright 2016 TechDivision GmbH <info@appserver.io>
+ * @license   http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
+ * @link      https://github.com/appserver-io/dnsserver
+ * @link      http://www.appserver.io/
+ */
 
-class RecordTypeEnum {
-    
+namespace AppserverIo\DnsServer\Utils;
+
+/**
+ * Class CoreModule
+ *
+ * @author    Tim Wagner <tw@appserver.io>
+ * @copyright 2016 TechDivision GmbH <info@appserver.io>
+ * @license   http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
+ * @link      https://github.com/appserver-io/dnsserver
+ * @link      http://www.appserver.io/
+ */
+class RecordTypeEnum
+{
+
     /**
      * @var array
      */
@@ -20,7 +48,7 @@ class RecordTypeEnum {
         'AXFR' => 252,
         'ANY' => 255,
     );
-    
+
     const TYPE_A = 1;
     const TYPE_NS = 2;
     const TYPE_CNAME = 5;
@@ -32,7 +60,7 @@ class RecordTypeEnum {
     const TYPE_OPT = 41;
     const TYPE_AXFR = 252;
     const TYPE_ANY = 255;
-    
+
     /**
      * @param int $typeIndex    The index of the type contained in the question
      * @return string|false
@@ -41,7 +69,7 @@ class RecordTypeEnum {
     {
         return array_search($typeIndex, self::$types);
     }
-    
+
     /**
      * @param string $name      The name of the record type, e.g. = 'A' or 'MX' or 'SOA'
      * @return int|false
@@ -52,7 +80,7 @@ class RecordTypeEnum {
         if(!array_key_exists($key, self::$types)) return false;
         return self::$types[$key];
     }
-    
+
     /**
      * @return array
      */
@@ -60,5 +88,5 @@ class RecordTypeEnum {
     {
         return self::$types;
     }
-    
+
 }

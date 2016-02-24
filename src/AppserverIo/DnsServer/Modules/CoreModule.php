@@ -1,7 +1,7 @@
 <?php
 
 /**
- * \AppserverIo\DnsServer\Modules\CoreModule
+ * AppserverIo\DnsServer\Modules\CoreModule
  *
  * NOTICE OF LICENSE
  *
@@ -14,25 +14,22 @@
  * @author    Tim Wagner <tw@appserver.io>
  * @copyright 2016 TechDivision GmbH <info@appserver.io>
  * @license   http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
- * @link      https://github.com/appserver-io/webserver
+ * @link      https://github.com/appserver-io/dnsserver
  * @link      http://www.appserver.io/
  */
 
-namespace AppserverIo\WebServer\Modules;
+namespace AppserverIo\DnsServer\Modules;
 
-use AppserverIo\Psr\HttpMessage\RequestInterface;
-use AppserverIo\Psr\HttpMessage\ResponseInterface;
-use AppserverIo\WebServer\Interfaces\HttpModuleInterface;
-use AppserverIo\Psr\HttpMessage\Protocol;
-use AppserverIo\Http\HttpResponseStates;
-use AppserverIo\Server\Dictionaries\ModuleHooks;
-use AppserverIo\Server\Dictionaries\ServerVars;
-use AppserverIo\Server\Dictionaries\ModuleVars;
 use AppserverIo\Server\Interfaces\RequestContextInterface;
 use AppserverIo\Server\Interfaces\ServerContextInterface;
 use AppserverIo\Server\Exceptions\ModuleException;
-use AppserverIo\Server\Dictionaries\MimeTypes;
-use AppserverIo\WebServer\Interfaces\DnsModuleInterface;
+use AppserverIo\DnsServer\Utils\RecordTypeEnum;
+use AppserverIo\DnsServer\Interfaces\DnsModuleInterface;
+use AppserverIo\DnsServer\Interfaces\DnsRequestInterface;
+use AppserverIo\DnsServer\Interfaces\DnsResponseInterface;
+use AppserverIo\DnsServer\StorageProvider\JsonStorageProvider;
+use AppserverIo\DnsServer\StorageProvider\RecursiveProvider;
+use AppserverIo\DnsServer\StorageProvider\StackableResolver;
 
 /**
  * Class CoreModule
@@ -40,7 +37,7 @@ use AppserverIo\WebServer\Interfaces\DnsModuleInterface;
  * @author    Tim Wagner <tw@appserver.io>
  * @copyright 2016 TechDivision GmbH <info@appserver.io>
  * @license   http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
- * @link      https://github.com/appserver-io/webserver
+ * @link      https://github.com/appserver-io/dnsserver
  * @link      http://www.appserver.io/
  */
 class CoreModule implements DnsModuleInterface
@@ -94,12 +91,12 @@ class CoreModule implements DnsModuleInterface
         $this->serverContext = $serverContext;
 
         // JSON formatted DNS records file
-        $record_file = 'dns_record.json';
+        $record_file = 'etc/dns_record.json';
 
         $jsonStorageProvider = new JsonStorageProvider($record_file);
 
         // Recursive provider acting as a fallback to the JsonStorageProvider
-        $recursiveProvider = new RecursiveProvider($options);
+        $recursiveProvider = new RecursiveProvider();
 
         $this->stackableResolver = new StackableResolver(array($jsonStorageProvider, $recursiveProvider));
     }
@@ -133,45 +130,32 @@ class CoreModule implements DnsModuleInterface
     /**
      * Implements module logic for given hook
      *
-     * @param \AppserverIo\Psr\HttpMessage\RequestInterface          $request        A request object
-     * @param \AppserverIo\Psr\HttpMessage\ResponseInterface         $response       A response object
+     * @param \AppserverIo\DnsServer\Interfaces\DnsRequestInterface  $request        A request object
+     * @param \AppserverIo\DnsServer\Interfaces\DnsResponseInterface $response       A response object
      * @param \AppserverIo\Server\Interfaces\RequestContextInterface $requestContext A requests context instance
      *
      * @return bool
      * @throws \AppserverIo\Server\Exceptions\ModuleException
      */
-    public function process(RequestInterface $request, ResponseInterface $response, RequestContextInterface $requestContext)
-    {
-        $response->appendBodyStream($this->handleQuery($request->getBodyContent());
-    }
-
-    private function handleQuery($buffer)
+    public function process(DnsRequestInterface $request, DnsResponseInterface $response, RequestContextInterface $requestContext)
     {
 
-        $data = unpack('npacket_id/nflags/nqdcount/nancount/nnscount/narcount', $buffer);
-        $flags = $this->decodeFlags($data['flags']);
-        $offset = 12;
+        $answer = $this->getStackableResolver()->get_answer($question = $request->getQuestion());
 
-        $question = $this->ds_decode_question_rr($buffer, $offset, $data['qdcount']);
-        $answer = $this->ds_decode_rr($buffer, $offset, $data['ancount']);
-        $authority = $this->ds_decode_rr($buffer, $offset, $data['nscount']);
-        $additional = $this->ds_decode_rr($buffer, $offset, $data['arcount']);
-        $answer = $this->getStackableResolver()->get_answer($question);
-        $flags['qr'] = 1;
-        $flags['ra'] = 0;
+        $flags = array_merge($request->getFlags(), array('qr' => 1, 'ra' => 0));
 
-        $qdcount = count($question);
         $ancount = count($answer);
-        $nscount = count($authority);
-        $arcount = count($additional);
+        $qdcount = count($question);
+        $nscount = count($authority = $request->getAuthority());
+        $arcount = count($additional = $request->getAdditional());
 
-        $response = pack('nnnnnn', $data['packet_id'], $this->ds_encode_flags($flags), $qdcount, $ancount, $nscount, $arcount);
-        $response .= ($p = $this->ds_encode_question_rr($question, strlen($response)));
-        $response .= ($p = $this->ds_encode_rr($answer, strlen($response)));
-        $response .= $this->ds_encode_rr($authority, strlen($response));
-        $response .= $this->ds_encode_rr($additional, strlen($response));
+        $res = pack('nnnnnn', $request->getData('packet_id'), $this->ds_encode_flags($flags), $qdcount, $ancount, $nscount, $arcount);
+        $res .= ($p = $this->ds_encode_question_rr($question, strlen($res)));
+        $res .= ($p = $this->ds_encode_rr($answer, strlen($res)));
+        $res .= $this->ds_encode_rr($authority, strlen($res));
+        $res .= $this->ds_encode_rr($additional, strlen($res));
 
-        return $response;
+        $response->appendBodyStream($res);
     }
 
     private function ds_encode_flags($flags)
@@ -314,18 +298,5 @@ class CoreModule implements DnsModuleInterface
             default:
                 return $val;
         }
-    }
-
-    public function ds_error($code, $error, $file, $line)
-    {
-        if(!(error_reporting() &$code)) {
-            return;
-        }
-
-        $codes = array(E_ERROR => 'Error', E_WARNING => 'Warning', E_PARSE => 'Parse Error', E_NOTICE => 'Notice', E_CORE_ERROR => 'Core Error', E_CORE_WARNING => 'Core Warning', E_COMPILE_ERROR => 'Compile Error', E_COMPILE_WARNING => 'Compile Warning', E_USER_ERROR => 'User Error', E_USER_WARNING => 'User Warning', E_USER_NOTICE => 'User Notice', E_STRICT => 'Strict Notice', E_RECOVERABLE_ERROR => 'Recoverable Error', E_DEPRECATED => 'Deprecated Error', E_USER_DEPRECATED => 'User Deprecated Error');
-
-        $type = isset($codes[$code]) ? $codes[$code] : 'Unknown Error';
-
-        die(sprintf('DNS Server error: [%s] "%s" in file "%s" on line "%d".%s', $type, $error, $file, $line, PHP_EOL));
     }
 }

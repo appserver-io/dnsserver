@@ -1,7 +1,7 @@
 <?php
 
 /**
- * \AppserverIo\Http\HttpRequest
+ * AppserverIo\DnsServer\Connectors\DnsRequest
  *
  * NOTICE OF LICENSE
  *
@@ -11,24 +11,24 @@
  *
  * PHP version 5
  *
- * @author    Johann Zelger <jz@appserver.io>
+ * @author    Tim Wagner <tw@appserver.io>
  * @copyright 2015 TechDivision GmbH <info@appserver.io>
  * @license   http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
- * @link      https://github.com/appserver-io/http
+ * @link      https://github.com/appserver-io/dnsserver
  * @link      https://www.appserver.io
  */
 
-namespace AppserverIo\Http;
+namespace AppserverIo\DnsServer\Connectors;
 
 use AppserverIo\DnsServer\Interfaces\DnsRequestInterface;
 
 /**
  * A DNS request implementation.
  *
- * @author    Johann Zelger <jz@appserver.io>
+ * @author    Tim Wagner <tw@appserver.io>
  * @copyright 2015 TechDivision GmbH <info@appserver.io>
  * @license   http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
- * @link      https://github.com/appserver-io/http
+ * @link      https://github.com/appserver-io/dnsserver
  * @link      https://www.appserver.io
  */
 class DnsRequest implements DnsRequestInterface
@@ -40,6 +40,182 @@ class DnsRequest implements DnsRequestInterface
      * @var resource
      */
     protected $bodyStream;
+
+    /**
+     *
+     * @var array
+     */
+    protected $rawData;
+
+    /**
+     *
+     * @var array
+     */
+    protected $flags;
+
+    /**
+     *
+     * @var integer
+     */
+    protected $offset;
+
+    /**
+     *
+     * @var array
+     */
+    protected $question;
+
+    /**
+     *
+     * @var array
+     */
+    protected $answer;
+
+    /**
+     *
+     * @var array
+     */
+    protected $authority;
+
+    /**
+     *
+     * @var array
+     */
+    protected $additional;
+
+    /**
+     * Constructs the request object
+     */
+    public function __construct()
+    {
+        $this->resetBodyStream();
+    }
+
+    /**
+     * @param array $data
+     */
+    public function setRawData(array $rawData)
+    {
+        $this->rawData = $rawData;
+    }
+
+    /**
+     * @return array
+     */
+    public function getRawData()
+    {
+        return $this->rawData;
+    }
+
+    /**
+     *
+     * @param string $key
+     *
+     * @return array
+     */
+    public function getData($key)
+    {
+        if (isset($this->rawData[$key])) {
+            return $this->rawData[$key];
+        }
+    }
+
+    /**
+     * @param array $authority
+     */
+    public function setAdditional(array $additional)
+    {
+        $this->additional = $additional;
+    }
+
+    /**
+     * @return array
+     */
+    public function getAdditional()
+    {
+        return $this->additional;
+    }
+
+    /**
+     * @param array $authority
+     */
+    public function setAuthority(array $authority)
+    {
+        $this->authority = $authority;
+    }
+
+    /**
+     * @return array
+     */
+    public function getAuthority()
+    {
+        return $this->authority;
+    }
+
+    /**
+     * @param array $answer
+     */
+    public function setAnswer(array $answer)
+    {
+        $this->answer = $answer;
+    }
+
+    /**
+     * @return array
+     */
+    public function getAnswer()
+    {
+        return $this->answer;
+    }
+
+    /**
+     * @param array $question
+     */
+    public function setQuestion(array $question)
+    {
+        $this->question = $question;
+    }
+
+    /**
+     * @return string
+     */
+    public function getQuestion()
+    {
+        return $this->question;
+    }
+
+    /**
+     * @param integer $offset
+     */
+    public function setOffset($offset)
+    {
+        $this->offset = $offset;
+    }
+
+    /**
+     * @return integer
+     */
+    public function getOffset()
+    {
+        return $this->offset;
+    }
+
+    /**
+     *
+     * @param array $flags
+     */
+    public function setFlags(array $flags)
+    {
+        $this->flags = $flags;
+    }
+
+    /**
+     * @return array
+     */
+    public function getFlags()
+    {
+        return $this->flags;
+    }
 
     /**
      * Inits the body stream
@@ -56,14 +232,6 @@ class DnsRequest implements DnsRequestInterface
     }
 
     /**
-     * Constructs the request object
-     */
-    public function __construct()
-    {
-        $this->resetBodyStream();
-    }
-
-    /**
      * Initialises the request object to default properties
      *
      * @return void
@@ -73,6 +241,15 @@ class DnsRequest implements DnsRequestInterface
         // init body stream
         $this->resetBodyStream();
 
+        // intialize the members
+        $this->offset = 12;
+        $this->flags = array();
+        $this->question = array();
+        $this->authority = array();
+        $this->answer = array();
+        $this->additional = array();
+
+        // return the instance
         return $this;
     }
 

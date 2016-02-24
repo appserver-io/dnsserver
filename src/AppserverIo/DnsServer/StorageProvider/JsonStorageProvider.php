@@ -1,10 +1,38 @@
 <?php
 
-namespace yswery\DNS;
+/**
+ * AppserverIo\DnsServer\StorageProvider\AbstractStorageProvider
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/osl-3.0.php
+ *
+ * PHP version 5
+ *
+ * @author    Tim Wagner <tw@appserver.io>
+ * @copyright 2016 TechDivision GmbH <info@appserver.io>
+ * @license   http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
+ * @link      https://github.com/appserver-io/dnsserver
+ * @link      http://www.appserver.io/
+ */
 
-use \Exception;
+namespace AppserverIo\DnsServer\StorageProvider;
 
-class JsonStorageProvider extends AbstractStorageProvider {
+use AppserverIo\DnsServer\Utils\RecordTypeEnum;
+
+/**
+ * Class CoreModule
+ *
+ * @author    Tim Wagner <tw@appserver.io>
+ * @copyright 2016 TechDivision GmbH <info@appserver.io>
+ * @license   http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
+ * @link      https://github.com/appserver-io/dnsserver
+ * @link      http://www.appserver.io/
+ */
+class JsonStorageProvider extends AbstractStorageProvider
+{
 
     private $dns_records;
     private $DS_TTL;
@@ -13,7 +41,7 @@ class JsonStorageProvider extends AbstractStorageProvider {
     {
         $handle = @fopen($record_file, "r");
         if(!$handle) {
-            throw new Exception('Unable to open dns record file.');
+            throw new \Exception('Unable to open dns record file.');
         }
 
         $dns_json = fread($handle, filesize($record_file));
@@ -21,11 +49,11 @@ class JsonStorageProvider extends AbstractStorageProvider {
 
         $dns_records = json_decode($dns_json, true);
         if(!$dns_records) {
-            throw new Exception('Unable to parse dns record file.');
+            throw new \Exception('Unable to parse dns record file.');
         }
-        
+
         if(!is_int($default_ttl)) {
-            throw new Exception('Default TTL must be an integer.');
+            throw new \Exception('Default TTL must be an integer.');
         }
         $this->DS_TTL = $default_ttl;
 

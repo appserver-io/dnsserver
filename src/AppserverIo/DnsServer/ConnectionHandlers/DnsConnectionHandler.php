@@ -1,7 +1,7 @@
 <?php
 
 /**
- * \AppserverIo\DnsServer\ConnectionHandlers\DnsConnectionHandler
+ * AppserverIo\DnsServer\ConnectionHandlers\DnsConnectionHandler
  *
  * NOTICE OF LICENSE
  *
@@ -67,7 +67,6 @@ class DnsConnectionHandler implements ConnectionHandlerInterface
      * @var \AppserverIo\Server\Interfaces\RequestContextInterface
      */
     protected $requestContext;
-
 
     /**
      * Holds the connection instance
@@ -232,13 +231,11 @@ class DnsConnectionHandler implements ConnectionHandlerInterface
      * @param \AppserverIo\Psr\Socket\SocketInterface        $connection The connection to handle
      * @param \AppserverIo\Server\Interfaces\WorkerInterface $worker     The worker how started this handle
      *
-     * @return bool Weather it was responsible to handle the firstLine or not.
-     * @throws \Exception
+     * @return void
      */
     public function handle(SocketInterface $connection, WorkerInterface $worker)
     {
         try {
-
             // register shutdown handler once to avoid strange memory consumption problems
             $this->registerShutdown();
 
@@ -246,18 +243,20 @@ class DnsConnectionHandler implements ConnectionHandlerInterface
             $this->connection = $connection;
             $this->worker = $worker;
 
+            // load and initialize the request parser
             $parser = $this->getParser();
-
-            // init the request parser
             $parser->init();
 
-            // get local var refs
+            // laod the connection
             $connection = $this->getConnection();
 
+            // parse the DNS request data
             $this->getParser()->parse($connection->receiveFrom());
 
+            // propcess the modules
             $this->processModules();
 
+            // send the response back to the client
             $this->sendResponse();
 
         } catch (\Exception $e) {

@@ -11,10 +11,10 @@
  *
  * PHP version 5
  *
- * @author    Johann Zelger <jz@appserver.io>
- * @copyright 2015 TechDivision GmbH <info@appserver.io>
+ * @author    Tim Wagner <tw@appserver.io>
+ * @copyright 2016 TechDivision GmbH <info@appserver.io>
  * @license   http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
- * @link      https://github.com/appserver-io/server
+ * @link      https://github.com/appserver-io/dnsserver
  * @link      http://www.appserver.io
  */
 
@@ -25,12 +25,13 @@ use AppserverIo\Server\Exceptions\ModuleNotFoundException;
 use AppserverIo\Server\Exceptions\ConnectionHandlerNotFoundException;
 
 /**
- * Class ThreadWorker
+ * A threaded worker implementation that is customized
+ * to handle UDP instead of TCP connections.
  *
- * @author    Johann Zelger <jz@appserver.io>
- * @copyright 2015 TechDivision GmbH <info@appserver.io>
+ * @author    Tim Wagner <tw@appserver.io>
+ * @copyright 2016 TechDivision GmbH <info@appserver.io>
  * @license   http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
- * @link      https://github.com/appserver-io/server
+ * @link      https://github.com/appserver-io/dnsserver
  * @link      http://www.appserver.io
  */
 class UdpThreadWorker extends ThreadWorker
@@ -79,9 +80,9 @@ class UdpThreadWorker extends ThreadWorker
                     }
                 }
             }
+
         } catch (\Exception $e) {
-            // log error
-            // $serverContext->getLogger()->error($e->__toString());
+            $serverContext->getLogger()->error($e->__toString());
         }
 
         // call internal shutdown

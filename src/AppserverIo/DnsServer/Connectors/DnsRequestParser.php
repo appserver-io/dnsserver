@@ -36,7 +36,12 @@ use AppserverIo\DnsServer\Interfaces\DnsRequestParserInterface;
  */
 class DnsRequestParser implements DnsRequestParserInterface
 {
-    protected $DS_TTL = 300;
+    /**
+     * The TTL in seconds for the domain record.
+     *
+     * @var integer
+     */
+    protected $ttl = 300;
 
     /**
      * Holds the request instance to prepare
@@ -270,7 +275,7 @@ class DnsRequestParser implements DnsRequestParserInterface
                 break;
             case RecordTypeEnum::TYPE_OPT:
                 $data['type'] = RecordTypeEnum::TYPE_OPT;
-                $data['value'] = array('type' => RecordTypeEnum::TYPE_OPT, 'ext_code' => $this->DS_TTL>>24 &0xff, 'udp_payload_size' => 4096, 'version' => $this->DS_TTL>>16 &0xff, 'flags' => $this->decodeFlags($this->DS_TTL &0xffff));
+                $data['value'] = array('type' => RecordTypeEnum::TYPE_OPT, 'ext_code' => $this->ttl>>24 &0xff, 'udp_payload_size' => 4096, 'version' => $this->ttl>>16 &0xff, 'flags' => $this->decodeFlags($this->ttl &0xffff));
                 break;
             default:
                 $data['value'] = $val;

@@ -103,7 +103,7 @@ class RecursiveProvider extends AbstractStorageProvider
 
         // query whether or not the type is supported
         if (!$dnsConstName) {
-           throw new \Exception('Not supported dns type to query.');
+            throw new \Exception('Not supported dns type to query.');
         }
 
         // load the answer name and the available DNS records
@@ -117,7 +117,7 @@ class RecursiveProvider extends AbstractStorageProvider
                     $answer[$name] = $record[$name];
                 }
 
-            } else{
+            } else {
                 $answer = $record[$dnsAnswerName];
             }
 

@@ -280,7 +280,7 @@ class DnsUtil
                 $data['value']['mname'] = $this->decodeLabel($val, $offset);
                 $data['value']['rname'] = $this->decodeLabel($val, $offset);
                 $next_values = unpack('Nserial/Nrefresh/Nretry/Nexpire/Nminimum', substr($val, $offset));
-                foreach($next_values as $var => $val) {
+                foreach ($next_values as $var => $val) {
                     $data['value'][$var] = $val;
                 }
                 break;
@@ -506,32 +506,32 @@ class DnsUtil
                 return $enc;
 
             case RecordTypeEnum::TYPE_NS:
-                $val = rtrim($val,'.').'.';
+                $val = rtrim($val, '.') . '.';
                 return $this->encodeLabel($val, $offset);
 
             case RecordTypeEnum::TYPE_CNAME:
-                $val = rtrim($val,'.').'.';
+                $val = rtrim($val, '.') . '.';
                 return $this->encodeLabel($val, $offset);
 
             case RecordTypeEnum::TYPE_SOA:
                 $res = '';
-                $val['mname'] = rtrim($val['mname'],'.').'.';
-                $val['rname'] = rtrim($val['rname'],'.').'.';
+                $val['mname'] = rtrim($val['mname'], '.') . '.';
+                $val['rname'] = rtrim($val['rname'], '.') . '.';
                 $res .= $this->encodeLabel($val['mname'], $offset);
                 $res .= $this->encodeLabel($val['rname'], $offset +strlen($res));
                 $res .= pack('NNNNN', $val['serial'], $val['refresh'], $val['retry'], $val['expire'], $val['minimum-ttl']);
                 return $res;
 
             case RecordTypeEnum::TYPE_PTR:
-                $val = rtrim($val,'.').'.';
+                $val = rtrim($val, '.') . '.';
                 return $this->encodeLabel($val, $offset);
 
             case RecordTypeEnum::TYPE_MX:
-                $val = rtrim($val,'.').'.';
-                return pack('n', 10) . $this->encodeLabel($val, $offset +2);
+                $val = rtrim($val, '.') . '.';
+                return pack('n', 10) . $this->encodeLabel($val, $offset + 2);
 
             case RecordTypeEnum::TYPE_TXT:
-                if(strlen($val) > 255) {
+                if (strlen($val) > 255) {
                     $val = substr($val, 0, 255);
                 }
                 return chr(strlen($val)) . $val;

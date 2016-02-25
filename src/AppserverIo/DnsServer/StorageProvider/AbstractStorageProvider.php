@@ -39,5 +39,5 @@ abstract class AbstractStorageProvider
      *
      * @return array The answer
      */
-    abstract function getAnswer(array $question);
+    abstract public function getAnswer(array $question);
 }

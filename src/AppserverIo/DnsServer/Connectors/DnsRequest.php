@@ -101,7 +101,9 @@ class DnsRequest implements DnsRequestInterface
     /**
      * Set's the raw DNS data passed by the client.
      *
-     * @param array $data The raw DNS data
+     * @param array $rawData The raw DNS data
+     *
+     * @return void
      */
     public function setRawData(array $rawData)
     {
@@ -135,7 +137,9 @@ class DnsRequest implements DnsRequestInterface
     /**
      * Set's additional DNS data passed by the client.
      *
-     * @param array $authority The additional data
+     * @param array $additional The additional data
+     *
+     * @return void
      */
     public function setAdditional(array $additional)
     {
@@ -156,6 +160,8 @@ class DnsRequest implements DnsRequestInterface
      * Set's the DNS authority passed by the client.
      *
      * @param array $authority The authority
+     *
+     * @return void
      */
     public function setAuthority(array $authority)
     {
@@ -176,6 +182,8 @@ class DnsRequest implements DnsRequestInterface
      * Set's the DNS request answer.
      *
      * @param array $answer The answer
+     *
+     * @return void
      */
     public function setAnswer(array $answer)
     {
@@ -196,6 +204,8 @@ class DnsRequest implements DnsRequestInterface
      * Set's the DNS request information.
      *
      * @param array $question The DNS request information
+     *
+     * @return void
      */
     public function setQuestion(array $question)
     {
@@ -216,6 +226,8 @@ class DnsRequest implements DnsRequestInterface
      * Set's the offset to start reading the DNS request data.
      *
      * @param integer $offset The offset
+     *
+     * @return void
      */
     public function setOffset($offset)
     {
@@ -236,6 +248,8 @@ class DnsRequest implements DnsRequestInterface
      * Set's the DNS flags sent by the client.
      *
      * @param array $flags The flags
+     *
+     * @return void
      */
     public function setFlags(array $flags)
     {

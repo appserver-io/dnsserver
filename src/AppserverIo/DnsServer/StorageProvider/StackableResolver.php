@@ -21,7 +21,7 @@
 namespace AppserverIo\DnsServer\StorageProvider;
 
 /**
- * Class CoreModule
+ * A wrapper for multiple resolvers.
  *
  * @author    Tim Wagner <tw@appserver.io>
  * @copyright 2016 TechDivision GmbH <info@appserver.io>
@@ -33,25 +33,52 @@ class StackableResolver
 {
 
     /**
+     * The available DNS resolvers.
+     *
      * @var array
      */
     protected $resolvers;
 
+    /**
+     * Initializes the wrapper with the available resolvers.
+     *
+     * @param array $resolvers The resolvers
+     */
     public function __construct(array $resolvers = array())
     {
         $this->resolvers = $resolvers;
     }
 
-    public function getAnswer($question)
+    /**
+     * Return's the available resolvers.
+     *
+     * @return array The available resolvers
+     */
+    protected function getResolvers()
     {
-        foreach ($this->resolvers as $resolver) {
+        return $this->resolvers;
+    }
+
+    /**
+     * Return's the answer to the passed question to resolve a DNS request.
+     *
+     * @param array $question The question
+     *
+     * @return array The answer
+     */
+    public function getAnswer(array $question)
+    {
+
+        // iterate over the resolvers and try to find an answer to the passed question
+        foreach ($this->getResolvers() as $resolver) {
             $answer = $resolver->getAnswer($question);
+            // query whether or not, the resolver has the answer
             if ($answer) {
                 return $answer;
             }
         }
 
+        // return an empty array, because we don't have an answer
         return array();
     }
-
 }

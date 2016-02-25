@@ -21,7 +21,7 @@
 namespace AppserverIo\DnsServer\Utils;
 
 /**
- * Class CoreModule
+ * Enum implementation for the available DNS record types.
  *
  * @author    Tim Wagner <tw@appserver.io>
  * @copyright 2016 TechDivision GmbH <info@appserver.io>
@@ -33,22 +33,10 @@ class RecordTypeEnum
 {
 
     /**
-     * @var array
+     * The available record types.
+     *
+     * @var integer
      */
-    private static $types = array(
-        'A' => 1,
-        'NS' => 2,
-        'CNAME' => 5,
-        'SOA' => 6,
-        'PTR' => 12,
-        'MX' => 15,
-        'TXT' => 16,
-        'AAAA' => 28,
-        'OPT' => 41,
-        'AXFR' => 252,
-        'ANY' => 255,
-    );
-
     const TYPE_A = 1;
     const TYPE_NS = 2;
     const TYPE_CNAME = 5;
@@ -62,31 +50,63 @@ class RecordTypeEnum
     const TYPE_ANY = 255;
 
     /**
-     * @param int $typeIndex    The index of the type contained in the question
+     * The type mapping.
+     *
+     * @var array
+     */
+    protected static $types = array(
+        'A' => 1,
+        'NS' => 2,
+        'CNAME' => 5,
+        'SOA' => 6,
+        'PTR' => 12,
+        'MX' => 15,
+        'TXT' => 16,
+        'AAAA' => 28,
+        'OPT' => 41,
+        'AXFR' => 252,
+        'ANY' => 255,
+    );
+
+    /**
+     * @param integer $typeIndex The index of the type contained in the question
+     *
      * @return string|false
      */
-    public static function get_name($typeIndex)
+    public static function getName($typeIndex)
     {
-        return array_search($typeIndex, self::$types);
+        return array_search($typeIndex, RecordTypeEnum::$types);
     }
 
     /**
-     * @param string $name      The name of the record type, e.g. = 'A' or 'MX' or 'SOA'
-     * @return int|false
+     * Returns the index for the passed type.
+     *
+     * @param string $name The name of the record type, e.g. = 'A' or 'MX' or 'SOA'
+     *
+     * @return integer|false The index or FALSE
      */
-    public static function get_type_index($name)
+    public static function getTypeIndex($name)
     {
+
+        // prepare the key from the passed name
         $key = trim(strtoupper($name));
-        if(!array_key_exists($key, self::$types)) return false;
-        return self::$types[$key];
+
+        // query whether or not, the key exists
+        if (!array_key_exists($key, RecordTypeEnum::$types)) {
+            return false;
+        }
+
+        // return the index
+        return RecordTypeEnum::$types[$key];
     }
 
     /**
-     * @return array
+     * Return's the available DNS record types.
+     *
+     * @return array The available types
      */
-    public static function get_types()
+    public static function getTypes()
     {
-        return self::$types;
+        return RecordTypeEnum::$types;
     }
-
 }

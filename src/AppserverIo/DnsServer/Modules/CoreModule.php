@@ -20,19 +20,19 @@
 
 namespace AppserverIo\DnsServer\Modules;
 
-use AppserverIo\Server\Interfaces\RequestContextInterface;
-use AppserverIo\Server\Interfaces\ServerContextInterface;
-use AppserverIo\Server\Exceptions\ModuleException;
+use AppserverIo\DnsServer\Utils\DnsUtil;
 use AppserverIo\DnsServer\Interfaces\DnsModuleInterface;
 use AppserverIo\DnsServer\Interfaces\DnsRequestInterface;
 use AppserverIo\DnsServer\Interfaces\DnsResponseInterface;
 use AppserverIo\DnsServer\StorageProvider\JsonStorageProvider;
 use AppserverIo\DnsServer\StorageProvider\RecursiveProvider;
 use AppserverIo\DnsServer\StorageProvider\StackableResolver;
-use AppserverIo\DnsServer\Utils\DnsUtil;
+use AppserverIo\Server\Interfaces\RequestContextInterface;
+use AppserverIo\Server\Interfaces\ServerContextInterface;
+use AppserverIo\Server\Exceptions\ModuleException;
 
 /**
- * Class CoreModule
+ * Core module that provides basic DNS name resolution.
  *
  * @author    Tim Wagner <tw@appserver.io>
  * @copyright 2016 TechDivision GmbH <info@appserver.io>

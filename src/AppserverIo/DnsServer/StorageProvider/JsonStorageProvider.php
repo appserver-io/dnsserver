@@ -23,7 +23,7 @@ namespace AppserverIo\DnsServer\StorageProvider;
 use AppserverIo\DnsServer\Utils\RecordTypeEnum;
 
 /**
- * Class CoreModule
+ * A storage provider implementation using a JSON file to load the DNS records from.
  *
  * @author    Tim Wagner <tw@appserver.io>
  * @copyright 2016 TechDivision GmbH <info@appserver.io>
@@ -34,49 +34,98 @@ use AppserverIo\DnsServer\Utils\RecordTypeEnum;
 class JsonStorageProvider extends AbstractStorageProvider
 {
 
-    private $dns_records;
-    private $DS_TTL;
+    /**
+     * The available DNS records from the JSON file.
+     *
+     * @var array
+     */
+    protected $dnsRecords;
 
-    public function __construct($record_file, $default_ttl = 300)
+    /**
+     * The default TTL in seconds for the DNS records.
+     *
+     * @var integer
+     */
+    protected $dsTtl;
+
+    /**
+     * Initializes the storage provider with a JSON file containing the
+     * DNS records and a default TTL.
+     *
+     * @param string  $recordFile The JSON file with the DNS records
+     * @param integer $defaultTtl The default DNS TTL in sencods
+     *
+     * @throws \Exception Is thrown if the JSON can not be read
+     */
+    public function __construct($recordFile, $defaultTtl = 300)
     {
-        $handle = @fopen($record_file, "r");
-        if(!$handle) {
+
+        // try to open the file
+        $handle = @fopen($recordFile, "r");
+        if (!$handle) {
             throw new \Exception('Unable to open dns record file.');
         }
 
-        $dns_json = fread($handle, filesize($record_file));
+        // read the file
+        $dnsJson = fread($handle, filesize($recordFile));
         fclose($handle);
 
-        $dns_records = json_decode($dns_json, true);
-        if(!$dns_records) {
+        // try to decode the JSON content
+        $dnsRecords = json_decode($dnsJson, true);
+        if (!$dnsRecords) {
             throw new \Exception('Unable to parse dns record file.');
         }
 
-        if(!is_int($default_ttl)) {
+        // query whether or not the default TTL is an integer
+        if (!is_int($defaultTtl)) {
             throw new \Exception('Default TTL must be an integer.');
         }
-        $this->DS_TTL = $default_ttl;
 
-        $this->dns_records = $dns_records;
+        // set the default TTL and the DNS records
+        $this->dsTtl = $defaultTtl;
+        $this->dnsRecords = $dnsRecords;
     }
 
-    public function getAnswer($question)
+    /**
+     * Return's the answer to the passed question to resolve a DNS request.
+     *
+     * @param array $question The question
+     *
+     * @return array The answer
+     */
+    public function getAnswer(array $question)
     {
+
+        // initialize the variables
         $answer = array();
         $domain = trim($question[0]['qname'], '.');
-        $type = RecordTypeEnum::get_name($question[0]['qtype']);
+        $type = RecordTypeEnum::getName($question[0]['qtype']);
 
-        if(isset($this->dns_records[$domain]) &&isset($this->dns_records[$domain][$type])) {
-            if(is_array($this->dns_records[$domain][$type]) && $type != 'SOA') {
-                foreach($this->dns_records[$domain][$type] as $ip) {
-                    $answer[] = array('name' => $question[0]['qname'], 'class' => $question[0]['qclass'], 'ttl' => $this->DS_TTL, 'data' => array('type' => $question[0]['qtype'], 'value' => $ip));
+        // query whether the requested domain and type are set in our domain records
+        if (isset($this->dnsRecords[$domain]) && isset($this->dnsRecords[$domain][$type])) {
+            // query whether or not the type is an array and NOT 'SOA'
+            if (is_array($this->dnsRecords[$domain][$type]) && $type != 'SOA') {
+                // iterate over the domain's types and load the IP
+                foreach ($this->dnsRecords[$domain][$type] as $ip) {
+                    $answer[] = array(
+                        'name' => $question[0]['qname'],
+                        'class' => $question[0]['qclass'],
+                        'ttl' => $this->dsTtl,
+                        'data' => array('type' => $question[0]['qtype'], 'value' => $ip)
+                    );
                 }
+
             } else {
-                $answer[] = array('name' => $question[0]['qname'], 'class' => $question[0]['qclass'], 'ttl' => $this->DS_TTL, 'data' => array('type' => $question[0]['qtype'], 'value' => $this->dns_records[$domain][$type]));
+                $answer[] = array(
+                    'name' => $question[0]['qname'],
+                    'class' => $question[0]['qclass'],
+                    'ttl' => $this->dsTtl,
+                    'data' => array('type' => $question[0]['qtype'], 'value' => $this->dnsRecords[$domain][$type])
+                );
             }
         }
 
+        // return the answer
         return $answer;
     }
-
 }

@@ -21,7 +21,7 @@
 namespace AppserverIo\DnsServer\StorageProvider;
 
 /**
- * Class CoreModule
+ * Abstract storable provider implementation.
  *
  * @author    Tim Wagner <tw@appserver.io>
  * @copyright 2016 TechDivision GmbH <info@appserver.io>
@@ -33,9 +33,11 @@ abstract class AbstractStorageProvider
 {
 
     /**
+     * Return's the answer to the passed question to resolve a DNS request.
      *
-     * @param unknown $question
+     * @param array $question The question
+     *
+     * @return array The answer
      */
-    abstract function getAnswer($question);
-
+    abstract function getAnswer(array $question);
 }

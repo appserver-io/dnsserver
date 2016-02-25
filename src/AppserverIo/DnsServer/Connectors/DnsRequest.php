@@ -42,42 +42,49 @@ class DnsRequest implements DnsRequestInterface
     protected $bodyStream;
 
     /**
+     * The raw DNS data passed by the client.
      *
      * @var array
      */
     protected $rawData;
 
     /**
+     * The DNS flags sent by the client.
      *
      * @var array
      */
     protected $flags;
 
     /**
+     * The offset to start reading the DNS request data.
      *
      * @var integer
      */
     protected $offset;
 
     /**
+     * The DNS request information.
      *
      * @var array
      */
     protected $question;
 
     /**
+     * The DNS authority passed by the client.
      *
      * @var array
      */
     protected $answer;
 
     /**
+     * The DNS authority passed by the client.
      *
      * @var array
      */
     protected $authority;
 
     /**
+     * The additional DNS data passed by the client.
      *
      * @var array
      */
@@ -92,7 +99,9 @@ class DnsRequest implements DnsRequestInterface
     }
 
     /**
-     * @param array $data
+     * Set's the raw DNS data passed by the client.
+     *
+     * @param array $data The raw DNS data
      */
     public function setRawData(array $rawData)
     {
@@ -100,7 +109,9 @@ class DnsRequest implements DnsRequestInterface
     }
 
     /**
-     * @return array
+     * Return's the raw DNS data passed by the client.
+     *
+     * @return array The raw DNS data
      */
     public function getRawData()
     {
@@ -108,10 +119,11 @@ class DnsRequest implements DnsRequestInterface
     }
 
     /**
+     * Return's the DNS data with the passed key from the raw data.
      *
-     * @param string $key
+     * @param string $key The key of the data to be returned
      *
-     * @return array
+     * @return array|null The requested data
      */
     public function getData($key)
     {
@@ -121,7 +133,9 @@ class DnsRequest implements DnsRequestInterface
     }
 
     /**
-     * @param array $authority
+     * Set's additional DNS data passed by the client.
+     *
+     * @param array $authority The additional data
      */
     public function setAdditional(array $additional)
     {
@@ -129,7 +143,9 @@ class DnsRequest implements DnsRequestInterface
     }
 
     /**
-     * @return array
+     * Return's additional DNS data passed by the client.
+     *
+     * @return array The additional data
      */
     public function getAdditional()
     {
@@ -137,7 +153,9 @@ class DnsRequest implements DnsRequestInterface
     }
 
     /**
-     * @param array $authority
+     * Set's the DNS authority passed by the client.
+     *
+     * @param array $authority The authority
      */
     public function setAuthority(array $authority)
     {
@@ -145,7 +163,9 @@ class DnsRequest implements DnsRequestInterface
     }
 
     /**
-     * @return array
+     * Return's the DNS authority passed by the client.
+     *
+     * @return array The authority
      */
     public function getAuthority()
     {
@@ -153,7 +173,9 @@ class DnsRequest implements DnsRequestInterface
     }
 
     /**
-     * @param array $answer
+     * Set's the DNS request answer.
+     *
+     * @param array $answer The answer
      */
     public function setAnswer(array $answer)
     {
@@ -161,7 +183,9 @@ class DnsRequest implements DnsRequestInterface
     }
 
     /**
-     * @return array
+     * Return's the DNS request answer.
+     *
+     * @return array The answer
      */
     public function getAnswer()
     {
@@ -169,7 +193,9 @@ class DnsRequest implements DnsRequestInterface
     }
 
     /**
-     * @param array $question
+     * Set's the DNS request information.
+     *
+     * @param array $question The DNS request information
      */
     public function setQuestion(array $question)
     {
@@ -177,7 +203,9 @@ class DnsRequest implements DnsRequestInterface
     }
 
     /**
-     * @return string
+     * Return's the DNS request query information.
+     *
+     * @return string The DNS request information
      */
     public function getQuestion()
     {
@@ -185,7 +213,9 @@ class DnsRequest implements DnsRequestInterface
     }
 
     /**
-     * @param integer $offset
+     * Set's the offset to start reading the DNS request data.
+     *
+     * @param integer $offset The offset
      */
     public function setOffset($offset)
     {
@@ -193,7 +223,9 @@ class DnsRequest implements DnsRequestInterface
     }
 
     /**
-     * @return integer
+     * Return's the offset to start reading the DNS request data.
+     *
+     * @return integer The offset
      */
     public function getOffset()
     {
@@ -201,8 +233,9 @@ class DnsRequest implements DnsRequestInterface
     }
 
     /**
+     * Set's the DNS flags sent by the client.
      *
-     * @param array $flags
+     * @param array $flags The flags
      */
     public function setFlags(array $flags)
     {
@@ -210,7 +243,9 @@ class DnsRequest implements DnsRequestInterface
     }
 
     /**
-     * @return array
+     * Return's the DNS flags sent by the client.
+     *
+     * @return array The flags
      */
     public function getFlags()
     {
@@ -224,6 +259,7 @@ class DnsRequest implements DnsRequestInterface
      */
     protected function resetBodyStream()
     {
+
         // if body stream exists close it
         if (is_resource($this->bodyStream)) {
             fclose($this->bodyStream);
@@ -238,6 +274,7 @@ class DnsRequest implements DnsRequestInterface
      */
     public function init()
     {
+
         // init body stream
         $this->resetBodyStream();
 
@@ -278,28 +315,6 @@ class DnsRequest implements DnsRequestInterface
     public function getBodyStream()
     {
         return $this->bodyStream;
-    }
-
-    /**
-     * Returns the body content stored in body stream
-     *
-     * @return string
-     */
-    public function getBodyContent()
-    {
-        // init vars
-        $bodyContent = "";
-        $contentLength = $this->getHeader(HttpProtocol::HEADER_CONTENT_LENGTH);
-        // just if we got a body content
-        if ($contentLength > 0) {
-            // set bodystream resource ref to var
-            $bodyStream = $this->getBodyStream();
-            // rewind pointer
-            rewind($bodyStream);
-            // returns whole body content by given content length
-            $bodyContent = fread($bodyStream, $contentLength);
-        }
-        return $bodyContent;
     }
 
     /**

@@ -60,7 +60,7 @@ class JsonStorageProvider extends AbstractStorageProvider
         $this->dns_records = $dns_records;
     }
 
-    public function get_answer($question)
+    public function getAnswer($question)
     {
         $answer = array();
         $domain = trim($question[0]['qname'], '.');

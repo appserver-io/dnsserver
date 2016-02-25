@@ -45,7 +45,7 @@ class RecursiveProvider extends AbstractStorageProvider
         'DNS_PTR' => 'target',
     );
 
-    public function get_answer($question)
+    public function getAnswer($question)
     {
         $answer = array();
         $domain = trim($question[0]['qname'], '.');

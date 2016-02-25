@@ -56,13 +56,6 @@ interface DnsRequestInterface
     public function getBodyStream();
 
     /**
-     * Returns the body content stored in body stream
-     *
-     * @return string
-     */
-    public function getBodyContent();
-
-    /**
      * Copies a source stream to body stream
      *
      * @param resource $sourceStream The file pointer to source stream

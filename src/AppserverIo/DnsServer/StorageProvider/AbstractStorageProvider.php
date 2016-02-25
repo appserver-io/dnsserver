@@ -36,6 +36,6 @@ abstract class AbstractStorageProvider
      *
      * @param unknown $question
      */
-    abstract function get_answer($question);
+    abstract function getAnswer($question);
 
 }

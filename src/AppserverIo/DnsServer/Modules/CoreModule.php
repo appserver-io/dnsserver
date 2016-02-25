@@ -23,13 +23,13 @@ namespace AppserverIo\DnsServer\Modules;
 use AppserverIo\Server\Interfaces\RequestContextInterface;
 use AppserverIo\Server\Interfaces\ServerContextInterface;
 use AppserverIo\Server\Exceptions\ModuleException;
-use AppserverIo\DnsServer\Utils\RecordTypeEnum;
 use AppserverIo\DnsServer\Interfaces\DnsModuleInterface;
 use AppserverIo\DnsServer\Interfaces\DnsRequestInterface;
 use AppserverIo\DnsServer\Interfaces\DnsResponseInterface;
 use AppserverIo\DnsServer\StorageProvider\JsonStorageProvider;
 use AppserverIo\DnsServer\StorageProvider\RecursiveProvider;
 use AppserverIo\DnsServer\StorageProvider\StackableResolver;
+use AppserverIo\DnsServer\Utils\DnsUtil;
 
 /**
  * Class CoreModule
@@ -88,19 +88,27 @@ class CoreModule implements DnsModuleInterface
     public function init(ServerContextInterface $serverContext)
     {
 
+        // set the server context
         $this->serverContext = $serverContext;
 
         // JSON formatted DNS records file
         $record_file = 'etc/dns_record.json';
 
+        // initialize the storage provider
         $jsonStorageProvider = new JsonStorageProvider($record_file);
 
         // Recursive provider acting as a fallback to the JsonStorageProvider
         $recursiveProvider = new RecursiveProvider();
 
+        // initialize the DNS resolver to load the DNS entries from the storage
         $this->stackableResolver = new StackableResolver(array($jsonStorageProvider, $recursiveProvider));
     }
 
+    /**
+     * The resolver to load the DNS entries with.
+     *
+     * @return \AppserverIo\DnsServer\StorageProvider\StackableResolver The resolver instance
+     */
     public function getStackableResolver()
     {
         return $this->stackableResolver;
@@ -128,175 +136,37 @@ class CoreModule implements DnsModuleInterface
     }
 
     /**
-     * Implements module logic for given hook
+     * Implements module logic.
      *
      * @param \AppserverIo\DnsServer\Interfaces\DnsRequestInterface  $request        A request object
      * @param \AppserverIo\DnsServer\Interfaces\DnsResponseInterface $response       A response object
      * @param \AppserverIo\Server\Interfaces\RequestContextInterface $requestContext A requests context instance
      *
-     * @return bool
-     * @throws \AppserverIo\Server\Exceptions\ModuleException
+     * @return void
      */
     public function process(DnsRequestInterface $request, DnsResponseInterface $response, RequestContextInterface $requestContext)
     {
 
-        $answer = $this->getStackableResolver()->get_answer($question = $request->getQuestion());
+        // load the answer from our DNS database
+        $answer = $this->getStackableResolver()->getAnswer($question = $request->getQuestion());
 
+        // merge the flags
         $flags = array_merge($request->getFlags(), array('qr' => 1, 'ra' => 0));
 
+        // prepare the numbers for the encoding
         $ancount = count($answer);
         $qdcount = count($question);
         $nscount = count($authority = $request->getAuthority());
         $arcount = count($additional = $request->getAdditional());
 
-        $res = pack('nnnnnn', $request->getData('packet_id'), $this->ds_encode_flags($flags), $qdcount, $ancount, $nscount, $arcount);
-        $res .= ($p = $this->ds_encode_question_rr($question, strlen($res)));
-        $res .= ($p = $this->ds_encode_rr($answer, strlen($res)));
-        $res .= $this->ds_encode_rr($authority, strlen($res));
-        $res .= $this->ds_encode_rr($additional, strlen($res));
+        // prepare the encoded DNS response
+        $res = pack('nnnnnn', $request->getData('packet_id'), DnsUtil::singleton()->encodeFlags($flags), $qdcount, $ancount, $nscount, $arcount);
+        $res .= DnsUtil::singleton()->encodeQuestionResourceRecord($question, strlen($res));
+        $res .= DnsUtil::singleton()->encodeResourceRecord($answer, strlen($res));
+        $res .= DnsUtil::singleton()->encodeResourceRecord($authority, strlen($res));
+        $res .= DnsUtil::singleton()->encodeResourceRecord($additional, strlen($res));
 
+        // append the response to the body stream
         $response->appendBodyStream($res);
-    }
-
-    private function ds_encode_flags($flags)
-    {
-        $val = 0;
-
-        $val |= ($flags['qr'] &0x1)<<15;
-        $val |= ($flags['opcode'] &0xf)<<11;
-        $val |= ($flags['aa'] &0x1)<<10;
-        $val |= ($flags['tc'] &0x1)<<9;
-        $val |= ($flags['rd'] &0x1)<<8;
-        $val |= ($flags['ra'] &0x1)<<7;
-        $val |= ($flags['z'] &0x7)<<4;
-        $val |= ($flags['rcode'] &0xf);
-
-        return $val;
-    }
-
-    private function ds_encode_label($str, $offset = NULL)
-    {
-        $res = '';
-        $in_offset = 0;
-
-        if($str == '.') {
-            return "\0";
-        }
-
-        while(1) {
-            $pos = strpos($str, '.', $in_offset);
-
-            if($pos === false) {
-                return $res . "\0";
-            }
-
-            $res .= chr($pos -$in_offset) . substr($str, $in_offset, $pos -$in_offset);
-            $offset += ($pos -$in_offset) +1;
-            $in_offset = $pos +1;
-        }
-    }
-
-    private function ds_encode_question_rr($list, $offset)
-    {
-        $res = '';
-
-        foreach($list as $rr) {
-            $lbl = $this->ds_encode_label($rr['qname'], $offset);
-            $offset += strlen($lbl) +4;
-            $res .= $lbl;
-            $res .= pack('nn', $rr['qtype'], $rr['qclass']);
-        }
-
-        return $res;
-    }
-
-    private function ds_encode_rr($list, $offset)
-    {
-        $res = '';
-
-        foreach($list as $rr) {
-            $lbl = $this->ds_encode_label($rr['name'], $offset);
-            $res .= $lbl;
-            $offset += strlen($lbl);
-
-            if(!is_array($rr['data'])) {
-                return false;
-            }
-
-            $offset += 10;
-            $data = $this->ds_encode_type($rr['data']['type'], $rr['data']['value'], $offset);
-
-            if(is_array($data)) {
-                // overloading written data
-                if(!isset($data['type']))
-                    $data['type'] = $rr['data']['type'];
-                    if(!isset($data['data']))
-                        $data['data'] = '';
-                        if(!isset($data['class']))
-                            $data['class'] = $rr['class'];
-                            if(!isset($data['ttl']))
-                                $data['ttl'] = $rr['ttl'];
-                                $offset += strlen($data['data']);
-                                $res .= pack('nnNn', $data['type'], $data['class'], $data['ttl'], strlen($data['data'])) . $data['data'];
-            } else {
-                $offset += strlen($data);
-                $res .= pack('nnNn', $rr['data']['type'], $rr['class'], $rr['ttl'], strlen($data)) . $data;
-            }
-        }
-
-        return $res;
-    }
-
-    private function ds_encode_type($type, $val = NULL, $offset = NULL)
-    {
-        switch ($type) {
-            case RecordTypeEnum::TYPE_A:
-                $enc = inet_pton($val);
-                if(strlen($enc) != 4)
-                    $enc = "\0\0\0\0";
-                    return $enc;
-            case RecordTypeEnum::TYPE_AAAA:
-                $enc = inet_pton($val);
-                if(strlen($enc) != 16)
-                    $enc = str_repeat("\0", 16);
-                    return $enc;
-            case RecordTypeEnum::TYPE_NS:
-                $val = rtrim($val,'.').'.';
-                return $this->ds_encode_label($val, $offset);
-            case RecordTypeEnum::TYPE_CNAME:
-                $val = rtrim($val,'.').'.';
-                return $this->ds_encode_label($val, $offset);
-            case RecordTypeEnum::TYPE_SOA:
-                $res = '';
-                $val['mname'] = rtrim($val['mname'],'.').'.';
-                $val['rname'] = rtrim($val['rname'],'.').'.';
-                $res .= $this->ds_encode_label($val['mname'], $offset);
-                $res .= $this->ds_encode_label($val['rname'], $offset +strlen($res));
-                $res .= pack('NNNNN', $val['serial'], $val['refresh'], $val['retry'], $val['expire'], $val['minimum-ttl']);
-                return $res;
-            case RecordTypeEnum::TYPE_PTR:
-                $val = rtrim($val,'.').'.';
-                return $this->ds_encode_label($val, $offset);
-            case RecordTypeEnum::TYPE_MX:
-                $val = rtrim($val,'.').'.';
-                return pack('n', 10) . $this->ds_encode_label($val, $offset +2);
-            case RecordTypeEnum::TYPE_TXT:
-                if(strlen($val) > 255)
-                    $val = substr($val, 0, 255);
-
-                    return chr(strlen($val)) . $val;
-            case RecordTypeEnum::TYPE_AXFR:
-                return '';
-            case RecordTypeEnum::TYPE_ANY:
-                return '';
-            case RecordTypeEnum::TYPE_OPT:
-                $res = array('class' => $val['udp_payload_size'], 'ttl' => (($val['ext_code'] &0xff)<<24) |(($val['version'] &0xff)<<16) |($this->ds_encode_flags($val['flags']) &0xffff), 'data' => '',
-                // // TODO: encode data
-                );
-
-                return $res;
-            default:
-                return $val;
-        }
     }
 }

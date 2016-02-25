@@ -42,10 +42,10 @@ class StackableResolver
         $this->resolvers = $resolvers;
     }
 
-    public function get_answer($question)
+    public function getAnswer($question)
     {
         foreach ($this->resolvers as $resolver) {
-            $answer = $resolver->get_answer($question);
+            $answer = $resolver->getAnswer($question);
             if ($answer) {
                 return $answer;
             }

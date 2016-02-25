@@ -9,14 +9,14 @@
 
 # Introduction
 
-Are you serious? A web server written in pure PHP for PHP? Ohhhh Yes! :) This is a HTTP/1.1 compliant dnsserver written in php.
-And the best... it has a php module and it's multithreaded!
+Are you serious? A DNS server written in pure PHP for PHP? Ohhhh Yes! :)
 
-We use this in the [`appserver.io`](<http://www.appserver.io>) project as a server component for handling HTTP requests.
+We use this in the [`appserver.io`](<http://www.appserver.io>) project as a server component for handling DNS requests. The purpose to
+implement a DNS server is to deliver it with appserver.io and allow automatich DNS resolution for the defined virtual hosts.
 
 # Installation
 
-If you want to use the web server with your application add this
+If you want to use the DNS server with your application add this
 
 ```sh
 {
@@ -30,7 +30,7 @@ to your ```composer.json``` and invoke ```composer update``` in your project.
 
 # Usage
 
-If you can satisfy the requirements it is very simple to use the dnsserver. Just do this:
+If you can satisfy the requirements it is very simple to use the DNS server. Just do this:
 ```bash
 git clone https://github.com/appserver-io/dnsserver
 cd dnsserver
@@ -42,18 +42,19 @@ If you're using [`appserver.io`](<http://www.appserver.io>) the start line will 
 bin/dnsserver
 ```
 
-Goto http://127.0.0.1:9080 and if all went good, you will see the welcome page of the php dnsserver.
-It will startup on insecure http port 9080 and secure https port 9443.
+Open a console and enter
 
-To test a php script just goto http://127.0.0.1:9080/info.php and see what happens... ;)
+```sh
+console$ dig @127.0.0.1 test.com A +short
+```
 
-# Semantic versioning
+the output should be
 
-This library follows semantic versioning and its public API defines as follows:
+```sh
+111.111.111.111
+```
 
-* The public API, configuration and entirety of its modules
-* The public interface of the `\AppserverIo\dnsserver\ConnectionHandlers\HttpConnectionHandler` class
-* The public interfaces within the `\AppserverIo\dnsserver\Interfaces` namespace
+which is the IP v4 address for the domain test.com, defined in the file `etc/dns_record.json` ;)
 
 # External Links
 

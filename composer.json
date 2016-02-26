@@ -42,11 +42,5 @@
 		"email" : "tw@appserver.io",
 		"issues" : "https://github.com/appserver-io/dnsserver/issues",
 		"source" : "https://github.com/appserver-io/dnsserver"
-	},
-	"repositories" : [{
-			"type" : "vcs",
-			"url" : "/Users/wagnert/Workspace/appserver.io/server",
-			"name" : "appserver-io/server"
-		}
-	]
+	}
 }

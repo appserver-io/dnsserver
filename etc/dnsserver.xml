@@ -37,7 +37,6 @@
                 <param name="workerNumber" type="integer">8</param>
                 <param name="workerAcceptMin" type="integer">16</param>
                 <param name="workerAcceptMax" type="integer">64</param>
-                <param name="dnsRecordFile" type="string">etc/dns_record.json</param>
             </params>
 
             <connectionHandlers>
@@ -45,7 +44,13 @@
             </connectionHandlers>
 
             <modules>
-                <module type="\AppserverIo\DnsServer\Modules\CoreModule" />
+                <module type="\AppserverIo\DnsServer\Modules\CoreModule">
+                    <params>
+                        <param name="resolverFactory" type="string">\AppserverIo\DnsServer\StorageProvider\StandardResolverFactory</param>
+                        <param name="recordFile" type="string">etc/dns_record.json</param>
+                        <param name="defaultTTL" type="integer">300</param>
+                    </params>
+                </module>
             </modules>
 
         </server>

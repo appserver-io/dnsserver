@@ -21,6 +21,7 @@
 namespace AppserverIo\DnsServer\StorageProvider;
 
 use AppserverIo\DnsServer\Utils\RecordTypeEnum;
+use AppserverIo\Server\Interfaces\ModuleConfigurationInterface;
 
 /**
  * A storage provider implementation using a JSON file to load the DNS records from.
@@ -33,6 +34,13 @@ use AppserverIo\DnsServer\Utils\RecordTypeEnum;
  */
 class JsonStorageProvider extends AbstractStorageProvider
 {
+
+    /**
+     * The key for the param containing the name of the file with the DNS records.
+     *
+     * @var string
+     */
+    const RECORD_FILE = 'recordFile';
 
     /**
      * The available DNS records from the JSON file.
@@ -49,16 +57,19 @@ class JsonStorageProvider extends AbstractStorageProvider
     protected $dsTtl;
 
     /**
-     * Initializes the storage provider with a JSON file containing the
-     * DNS records and a default TTL.
+     * Initializes the storage provider by loading the configuration values from
+     * the passed module configuration.
      *
-     * @param string  $recordFile The JSON file with the DNS records
-     * @param integer $defaultTtl The default DNS TTL in sencods
+     * @param \AppserverIo\Server\Interfaces\ModuleConfigurationInterface $moduleConfiguration The module configuration
      *
      * @throws \Exception Is thrown if the JSON can not be read
      */
-    public function __construct($recordFile, $defaultTtl = 300)
+    public function __construct(ModuleConfigurationInterface $moduleConfiguration)
     {
+
+        // load the configuration values
+        $recordFile = $moduleConfiguration->getParam(JsonStorageProvider::RECORD_FILE);
+        $defaultTtl = $moduleConfiguration->getParam(AbstractStorageProvider::DEFAULT_TTL);
 
         // try to open the file
         $handle = @fopen($recordFile, "r");

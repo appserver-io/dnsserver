@@ -24,12 +24,13 @@ use AppserverIo\DnsServer\Utils\DnsUtil;
 use AppserverIo\DnsServer\Interfaces\DnsModuleInterface;
 use AppserverIo\DnsServer\Interfaces\DnsRequestInterface;
 use AppserverIo\DnsServer\Interfaces\DnsResponseInterface;
-use AppserverIo\DnsServer\StorageProvider\JsonStorageProvider;
 use AppserverIo\DnsServer\StorageProvider\RecursiveProvider;
 use AppserverIo\DnsServer\StorageProvider\StackableResolver;
-use AppserverIo\Server\Interfaces\RequestContextInterface;
-use AppserverIo\Server\Interfaces\ServerContextInterface;
 use AppserverIo\Server\Exceptions\ModuleException;
+use AppserverIo\Server\Interfaces\ServerContextInterface;
+use AppserverIo\Server\Interfaces\RequestContextInterface;
+use AppserverIo\Server\Interfaces\ModuleConfigurationInterface;
+use AppserverIo\Server\Interfaces\ModuleConfigurationAwareInterface;
 
 /**
  * Core module that provides basic DNS name resolution.
@@ -40,8 +41,15 @@ use AppserverIo\Server\Exceptions\ModuleException;
  * @link      https://github.com/appserver-io/dnsserver
  * @link      http://www.appserver.io/
  */
-class CoreModule implements DnsModuleInterface
+class CoreModule implements DnsModuleInterface, ModuleConfigurationAwareInterface
 {
+
+    /**
+     * The key for the param containing the name of the resolver factory.
+     *
+     * @var string
+     */
+    const RESOLVER_FACTORY = 'resolverFactory';
 
     /**
      * Defines the module name.
@@ -49,6 +57,13 @@ class CoreModule implements DnsModuleInterface
      * @var string MODULE_NAME
      */
     const MODULE_NAME = 'core';
+
+    /**
+     * The module's configuration.
+     *
+     * @var \AppserverIo\Server\Interfaces\ModuleConfigurationInterface
+     */
+    protected $moduleConfiguration;
 
     /**
      * Holds the server context instance
@@ -78,7 +93,29 @@ class CoreModule implements DnsModuleInterface
     }
 
     /**
-     * Initiates the module
+     * Inject's the passed module configuration into the module instance.
+     *
+     * @param \AppserverIo\Server\Interfaces\ModuleConfigurationInterface $moduleConfiguration The module configuration to inject
+     *
+     * @return void
+     */
+    public function injectModuleConfiguration(ModuleConfigurationInterface $moduleConfiguration)
+    {
+        $this->moduleConfiguration = $moduleConfiguration;
+    }
+
+    /**
+     * Return's the module configuration.
+     *
+     * @return \AppserverIo\Server\Interfaces\ModuleConfigurationInterface The module configuration
+     */
+    public function getModuleConfiguration()
+    {
+        return $this->moduleConfiguration;
+    }
+
+    /**
+     * Initialize the module.
      *
      * @param \AppserverIo\Server\Interfaces\ServerContextInterface $serverContext The server's context instance
      *
@@ -91,17 +128,19 @@ class CoreModule implements DnsModuleInterface
         // set the server context
         $this->serverContext = $serverContext;
 
-        // JSON formatted DNS records file
-        $record_file = 'etc/dns_record.json';
+        // load the module configuration
+        $moduleConfiguration = $this->getModuleConfiguration();
 
-        // initialize the storage provider
-        $jsonStorageProvider = new JsonStorageProvider($record_file);
+        // try to load the resolver factory class name
+        if ($resolverFactoryClassName = $moduleConfiguration->getParam(CoreModule::RESOLVER_FACTORY)) {
+            $stackableResolver = $resolverFactoryClassName::factory($serverContext, $moduleConfiguration);
 
-        // Recursive provider acting as a fallback to the JsonStorageProvider
-        $recursiveProvider = new RecursiveProvider();
+        } else {
+            $stackableResolver = new StackableResolver(array(new RecursiveProvider()));
+        }
 
-        // initialize the DNS resolver to load the DNS entries from the storage
-        $this->stackableResolver = new StackableResolver(array($jsonStorageProvider, $recursiveProvider));
+        // set the initialized DNS resolver
+        $this->stackableResolver = $stackableResolver;
     }
 
     /**

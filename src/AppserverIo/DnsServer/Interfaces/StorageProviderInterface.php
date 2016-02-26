@@ -1,7 +1,7 @@
 <?php
 
 /**
- * AppserverIo\DnsServer\StorageProvider\AbstractStorageProvider
+ * AppserverIo\DnsServer\Interfaces\StorageProviderInterface
  *
  * NOTICE OF LICENSE
  *
@@ -18,12 +18,10 @@
  * @link      http://www.appserver.io/
  */
 
-namespace AppserverIo\DnsServer\StorageProvider;
-
-use AppserverIo\DnsServer\Interfaces\StorageProviderInterface;
+namespace AppserverIo\DnsServer\Interfaces;
 
 /**
- * Abstract storable provider implementation.
+ * Interface for all storable provider implementations.
  *
  * @author    Tim Wagner <tw@appserver.io>
  * @copyright 2016 TechDivision GmbH <info@appserver.io>
@@ -31,13 +29,15 @@ use AppserverIo\DnsServer\Interfaces\StorageProviderInterface;
  * @link      https://github.com/appserver-io/dnsserver
  * @link      http://www.appserver.io/
  */
-abstract class AbstractStorageProvider implements StorageProviderInterface
+interface StorageProviderInterface
 {
 
     /**
-     * The key for the param containing the default TTL for the DNS records.
+     * Return's the answer to the passed question to resolve a DNS request.
      *
-     * @var string
+     * @param array $question The question
+     *
+     * @return array The answer
      */
-    const DEFAULT_TTL = 'defaultTTL';
+    public function getAnswer(array $question);
 }

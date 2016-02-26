@@ -110,6 +110,9 @@ class RecursiveProvider extends AbstractStorageProvider
         $dnsAnswerName = $this->dnsAnswerNames[$dnsConstName];
         $records = dns_get_record($domain, constant($dnsConstName));
 
+        // declare the array for the answers
+        $answer = array();
+
         // prepare the answer
         foreach ($records as $record) {
             if (is_array($dnsAnswerName)) {

@@ -1,3 +1,13 @@
+# Version 2.0.1
+
+## Bugfixes
+
+* Remove connection closing in worker threads -> leads to segfaults
+
+## Features
+
+* None
+
 # Version 2.0.0
 
 ## Bugfixes

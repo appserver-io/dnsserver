@@ -324,12 +324,6 @@ class DnsConnectionHandler implements ConnectionHandlerInterface
      */
     public function shutdown()
     {
-
-        // check if connections is still alive
-        if ($connection = $this->getConnection()) {
-            $connection->close();
-        }
-
         // check if worker is given
         if ($worker = $this->getWorker()) {
             $worker->shutdown();

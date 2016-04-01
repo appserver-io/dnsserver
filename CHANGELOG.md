@@ -1,3 +1,13 @@
+# Version 2.0.2
+
+## Bugfixes
+
+* None
+
+## Features
+
+* Switched to appserver-io/server version 7.x to make use of multiple SSL configuration options
+
 # Version 2.0.1
 
 ## Bugfixes

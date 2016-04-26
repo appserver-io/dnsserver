@@ -1,3 +1,13 @@
+# Version 2.0.3
+
+## Bugfixes
+
+* None
+
+## Features
+
+* Switched to appserver-io/server version 8.x to make use of ciphers SSL configuration option
+
 # Version 2.0.2
 
 ## Bugfixes

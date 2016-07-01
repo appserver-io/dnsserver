@@ -1,3 +1,14 @@
+# Version 2.0.5
+
+## Bugfixes
+
+* None
+
+## Features
+
+* Switch from bash to Composer bin script
+* Switch to latest appserver-io/server version 10.0.0
+
 # Version 2.0.4
 
 ## Bugfixes

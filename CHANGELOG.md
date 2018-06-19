@@ -1,3 +1,13 @@
+# Version 2.0.6
+
+## Bugfixes
+
+* None
+
+## Features
+
+* Switch to appserver-io/logger version ~2.0
+
 # Version 2.0.5
 
 ## Bugfixes

@@ -4,20 +4,17 @@ php:
   - 7.0
   - 5.6
   - 5.5
-  - 5.4
 
 matrix:
   allow_failures:
     - php: 7.0
 
 before_install:
-  - pecl install pthreads-2.0.10
-  - pecl install xdebug
+  - if [[ "$TRAVIS_PHP_VERSION" < "7.0" ]]; then pecl install pthreads-2.0.10; fi
+  - if [[ "$TRAVIS_PHP_VERSION" = "7.0" ]] || [[ "$TRAVIS_PHP_VERSION" > "7.0" ]]; then pecl install pthreads-3.1.6; fi
+  - pecl install xdebug-2.5.5
   - phpenv rehash
   - wget https://scrutinizer-ci.com/ocular.phar
-
-before_script:
-  - composer selfupdate
 
 script:
   - ant composer-init
